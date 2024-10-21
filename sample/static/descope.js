@@ -1,4 +1,4 @@
-const projectId = "P2OkfVnJi5Ht7mpCqHjx17nV5epH";
+const projectId = "P2lpYELRlIQZSM7akVGZCe8uMtFu";
 const sdk = Descope({
   projectId: projectId,
   persistTokens: true,
