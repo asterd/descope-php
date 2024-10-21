@@ -31,6 +31,7 @@ class MgmtV1
             $region = substr($projectId, 1, 5);
             return !empty($region) ? $region : null;
         }
+        return null;
     }
 
     private static function updatePaths(): void
