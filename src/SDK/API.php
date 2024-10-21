@@ -27,7 +27,8 @@ class API
     /**
      * Constructor for API class.
      *
-     * @param string $managementKey Management key for authentication.
+     * @param string $projectId
+     * @param string|null $managementKey Management key for authentication.
      */
     public function __construct(string $projectId, ?string $managementKey)
     {
@@ -91,7 +92,7 @@ class API
                 'body' => $jsonBody,
                 ]
             );
-            
+
             // Ensure the response is an object with getBody method
             if (!is_object($response) || !method_exists($response, 'getBody') || !method_exists($response, 'getHeader')) {
                 throw new AuthException(500, 'internal error', 'Invalid response from API');
@@ -141,7 +142,7 @@ class API
                 throw new AuthException(500, 'internal error', 'Invalid response from API');
             }
             $resp = json_decode($response->getBody()->getContents(), true);
-            
+
             return $resp;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
@@ -217,7 +218,7 @@ class API
         if ($stJwt) {
             $jwtResponse[self::SESSION_TOKEN_NAME] = $stJwt;
         }
-        
+
         $rtJwt = $responseBody['refreshJwt'] ?? '';
 
         if ($refreshToken) {

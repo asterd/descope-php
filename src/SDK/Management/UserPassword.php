@@ -166,8 +166,8 @@ class UserPasswordDjango
 
 class UserPassword
 {
-    private ?string $cleartext;
-    private ?object $hashed;
+    public ?string $cleartext;
+    public ?object $hashed;
 
     public function __construct(?string $cleartext = null, ?object $hashed = null)
     {

@@ -4,12 +4,8 @@
 namespace Descope\SDK\Management;
 
 use Descope\SDK\Exception\AuthException;
-use Descope\SDK\Common\DeliveryMethod;
-use Descope\SDK\Management\AssociatedTenant;
-use Descope\SDK\Management\MgmtV1;
-use Descope\SDK\Management\LoginOptions;
-use Descope\SDK\Management\UserPassword;
 use Descope\SDK\API;
+use GuzzleHttp\Exception\RequestException;
 
 class UserObj
 {
@@ -340,22 +336,23 @@ class User
         );
     }
 
+    /**
+     * @throws AuthException
+     */
     public function load(string $loginId): array
     {
-        $response = $this->api->doGet(
+        return $this->api->doGet(
             MgmtV1::$USER_LOAD_PATH . "?loginId=" . $loginId,
             true
         );
-        return $response;
     }
 
     public function loadByUserId(string $userId): array
     {
-        $response = $this->api->doGet(
+        return $this->api->doGet(
             MgmtV1::$USER_LOAD_PATH . "?userId=" . $userId,
             true
         );
-        return $response;
     }
 
     /**
@@ -425,7 +422,7 @@ class User
         $allowedStatuses = ['enabled', 'disabled', 'invited'];
         if ($statuses !== null) {
             foreach ($statuses as $status) {
-                if (!in_array($status, $allowedStatuses)) {
+                if (!in_array($status, $allowedStatuses, true)) {
                     throw new AuthException(
                         400,
                         'ERROR_TYPE_INVALID_ARGUMENT',
@@ -462,13 +459,11 @@ class User
         $jsonBody = json_encode($body);
 
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USERS_SEARCH_PATH,
                 $body,
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -493,18 +488,19 @@ class User
     /**
      * Retrieve the provider token for a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $provider The name of the provider.
+     * @param string $loginId The login ID of the user.
+     * @param string $provider The name of the provider.
      * @return array The provider token details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function getProviderToken(string $loginId, string $provider): array
     {
         try {
-            $response = $this->api->doGet(
+            return $this->api->doGet(
                 MgmtV1::$USER_GET_PROVIDER_TOKEN . "?loginId=" . $loginId . "&provider=" . $provider. "&withRefreshToken=true",
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -515,19 +511,19 @@ class User
     /**
      * Activate a user.
      *
-     * @param  string $loginId The login ID of the user.
+     * @param string $loginId The login ID of the user.
      * @return array The activation status.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function activate(string $loginId): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_STATUS_PATH,
                 ['loginId' => $loginId, 'status' => 'enabled'],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -538,18 +534,19 @@ class User
     /**
      * Deactivate a user.
      *
-     * @param  string $loginId The login ID of the user.
+     * @param string $loginId The login ID of the user.
      * @return array The deactivation status.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function deactivate(string $loginId): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_STATUS_PATH,
                 ['loginId' => $loginId, 'status' => 'disabled'],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -560,19 +557,20 @@ class User
     /**
      * Update the login ID of a user.
      *
-     * @param  string $loginId    The current login ID of the user.
-     * @param  string $newLoginId The new login ID for the user.
+     * @param string $loginId The current login ID of the user.
+     * @param string $newLoginId The new login ID for the user.
      * @return array The updated user details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updateLoginId(string $loginId, string $newLoginId): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_LOGIN_ID_PATH,
                 ['loginId' => $loginId, 'newLoginId' => $newLoginId],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -583,21 +581,21 @@ class User
     /**
      * Update the email address of a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $email    The new email address.
-     * @param  bool   $verified Whether the email is verified.
+     * @param string $loginId The login ID of the user.
+     * @param string $email The new email address.
+     * @param bool $verified Whether the email is verified.
      * @return array The updated user details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updateEmail(string $loginId, string $email, bool $verified): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_EMAIL_PATH,
                 ['loginId' => $loginId, 'email' => $email, 'verified' => $verified],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -608,21 +606,21 @@ class User
     /**
      * Update the phone number of a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $phone    The new phone number.
-     * @param  bool   $verified Whether the phone number is verified.
+     * @param string $loginId The login ID of the user.
+     * @param string $phone The new phone number.
+     * @param bool $verified Whether the phone number is verified.
      * @return array The updated user details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updatePhone(string $loginId, string $phone, bool $verified): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_PHONE_PATH,
                 ['loginId' => $loginId, 'phone' => $phone, 'verified' => $verified],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -633,12 +631,14 @@ class User
     /**
      * Update the display name of a user.
      *
-     * @param  string      $loginId     The login ID of the user.
-     * @param  string      $displayName The new display name.
-     * @param  string|null $givenName   The given name (optional).
-     * @param  string|null $middleName  The middle name (optional).
-     * @param  string|null $familyName  The family name (optional).
+     * @param string $loginId The login ID of the user.
+     * @param string $displayName The new display name.
+     * @param string|null $givenName The given name (optional).
+     * @param string|null $middleName The middle name (optional).
+     * @param string|null $familyName The family name (optional).
      * @return array The updated user details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updateDisplayName(
         string $loginId,
@@ -659,13 +659,11 @@ class User
         }
 
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_NAME_PATH,
                 $body,
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -676,20 +674,20 @@ class User
     /**
      * Update the profile picture of a user.
      *
-     * @param  string $loginId The login ID of the user.
-     * @param  string $picture The new profile picture URL.
+     * @param string $loginId The login ID of the user.
+     * @param string $picture The new profile picture URL.
      * @return array The updated user details.
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updatePicture(string $loginId, string $picture): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_PICTURE_PATH,
                 ['loginId' => $loginId, 'picture' => $picture],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -700,21 +698,20 @@ class User
     /**
      * Update a custom attribute for a user.
      *
-     * @param  string $loginId        The login ID of the user.
-     * @param  string $attributeKey   The key of the custom attribute.
-     * @param  mixed  $attributeValue The value of the custom attribute.
+     * @param string $loginId The login ID of the user.
+     * @param string $attributeKey The key of the custom attribute.
+     * @param mixed $attributeValue The value of the custom attribute.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function updateCustomAttribute(string $loginId, string $attributeKey, $attributeValue): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_UPDATE_CUSTOM_ATTRIBUTE_PATH,
                 ['loginId' => $loginId, 'attributeKey' => $attributeKey, 'attributeValue' => $attributeValue],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -725,20 +722,19 @@ class User
     /**
      * Set roles for a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $roleNames The list of role names to set.
+     * @param string $loginId The login ID of the user.
+     * @param array $roleNames The list of role names to set.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function setRoles(string $loginId, array $roleNames): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_SET_ROLE_PATH,
                 ['loginId' => $loginId, 'roleNames' => $roleNames],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -749,20 +745,19 @@ class User
     /**
      * Add roles to a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $roleNames The list of role names to add.
+     * @param string $loginId The login ID of the user.
+     * @param array $roleNames The list of role names to add.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function addRoles(string $loginId, array $roleNames): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_ADD_ROLE_PATH,
                 ['loginId' => $loginId, 'roleNames' => $roleNames],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -773,20 +768,19 @@ class User
     /**
      * Remove roles from a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $roleNames The list of role names to remove.
+     * @param string $loginId The login ID of the user.
+     * @param array $roleNames The list of role names to remove.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function removeRoles(string $loginId, array $roleNames): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_REMOVE_ROLE_PATH,
                 ['loginId' => $loginId, 'roleNames' => $roleNames],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -797,20 +791,19 @@ class User
     /**
      * Set SSO applications for a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $ssoAppIds The list of SSO application IDs to set.
+     * @param string $loginId The login ID of the user.
+     * @param array $ssoAppIds The list of SSO application IDs to set.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function setSsoApps(string $loginId, array $ssoAppIds): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_SET_SSO_APPS,
                 ['loginId' => $loginId, 'ssoAppIds' => $ssoAppIds],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -821,20 +814,19 @@ class User
     /**
      * Add SSO applications to a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $ssoAppIds The list of SSO application IDs to add.
+     * @param string $loginId The login ID of the user.
+     * @param array $ssoAppIds The list of SSO application IDs to add.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function addSsoApps(string $loginId, array $ssoAppIds): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_ADD_SSO_APPS,
                 ['loginId' => $loginId, 'ssoAppIds' => $ssoAppIds],
                 true
             );
-            
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -845,20 +837,19 @@ class User
     /**
      * Remove SSO applications from a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  array  $ssoAppIds The list of SSO application IDs to remove.
+     * @param string $loginId The login ID of the user.
+     * @param array $ssoAppIds The list of SSO application IDs to remove.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function removeSsoApps(string $loginId, array $ssoAppIds): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_REMOVE_SSO_APPS,
                 ['loginId' => $loginId, 'ssoAppIds' => $ssoAppIds],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -869,20 +860,19 @@ class User
     /**
      * Add a tenant to a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $tenantId The tenant ID to add.
+     * @param string $loginId The login ID of the user.
+     * @param string $tenantId The tenant ID to add.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function addTenant(string $loginId, string $tenantId): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_ADD_TENANT_PATH,
                 ['loginId' => $loginId, 'tenantId' => $tenantId],
                 true
             );
-
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -893,19 +883,19 @@ class User
     /**
      * Remove a tenant from a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $tenantId The tenant ID to remove.
+     * @param string $loginId The login ID of the user.
+     * @param string $tenantId The tenant ID to remove.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function removeTenant(string $loginId, string $tenantId): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_REMOVE_TENANT_PATH,
                 ['loginId' => $loginId, 'tenantId' => $tenantId],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -916,20 +906,20 @@ class User
     /**
      * Set roles for a user in a tenant.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  string $tenantId  The tenant ID.
-     * @param  array  $roleNames The list of role names to set.
+     * @param string $loginId The login ID of the user.
+     * @param string $tenantId The tenant ID.
+     * @param array $roleNames The list of role names to set.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function setTenantRoles(string $loginId, string $tenantId, array $roleNames): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_SET_ROLE_PATH,
                 ['loginId' => $loginId, 'tenantId' => $tenantId, 'roleNames' => $roleNames],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -940,20 +930,20 @@ class User
     /**
      * Remove roles from a user in a tenant.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  string $tenantId  The tenant ID.
-     * @param  array  $roleNames The list of role names to remove.
+     * @param string $loginId The login ID of the user.
+     * @param string $tenantId The tenant ID.
+     * @param array $roleNames The list of role names to remove.
      * @return array The updated user details.
+     * @throws AuthException
      */
     public function removeTenantRoles(string $loginId, string $tenantId, array $roleNames): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_REMOVE_ROLE_PATH,
                 ['loginId' => $loginId, 'tenantId' => $tenantId, 'roleNames' => $roleNames],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -964,9 +954,10 @@ class User
     /**
      * Set a temporary password for a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $password The new temporary password.
+     * @param string $loginId The login ID of the user.
+     * @param UserPassword $password The new temporary password.
      * @return void
+     * @throws AuthException
      */
     public function setTemporaryPassword(string $loginId, UserPassword $password): void
     {
@@ -986,9 +977,10 @@ class User
     /**
      * Set an active password for a user.
      *
-     * @param  string $loginId  The login ID of the user.
-     * @param  string $password The new active password.
+     * @param string $loginId The login ID of the user.
+     * @param UserPassword $password The new active password.
      * @return void
+     * @throws AuthException
      */
     public function setActivePassword(string $loginId, UserPassword $password): void
     {
@@ -1008,10 +1000,11 @@ class User
     /**
      * Set a password for a user.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  string $password  The new password.
-     * @param  bool   $setActive Whether to set the password as active.
+     * @param string $loginId The login ID of the user.
+     * @param string $password The new password.
+     * @param bool $setActive Whether to set the password as active.
      * @return void
+     * @throws AuthException
      */
     public function setPassword(string $loginId, string $password, bool $setActive = false): void
     {
@@ -1031,10 +1024,12 @@ class User
     /**
      * Update the user's password.
      *
-     * @param  string $loginId   The login ID of the user.
-     * @param  string $password  The new password.
-     * @param  bool   $setActive Whether to set the user as active.
+     * @param string $loginId The login ID of the user.
+     * @param string $password The new password.
+     * @param bool $setActive Whether to set the user as active.
      * @return void
+     * @throws AuthException
+     * @throws AuthException
      */
     public function updatePassword(string $loginId, string $password, bool $setActive): void
     {
@@ -1054,8 +1049,9 @@ class User
     /**
      * Expire the user's password.
      *
-     * @param  string $loginId The login ID of the user.
+     * @param string $loginId The login ID of the user.
      * @return void
+     * @throws AuthException
      */
     public function expirePassword(string $loginId): void
     {
@@ -1075,8 +1071,9 @@ class User
     /**
      * Remove all passkeys for a user.
      *
-     * @param  string $loginId The login ID of the user.
+     * @param string $loginId The login ID of the user.
      * @return void
+     * @throws AuthException
      */
     public function removeAllPasskeys(string $loginId): void
     {
@@ -1096,15 +1093,16 @@ class User
     /**
      * Generate an OTP for a test user.
      *
-     * @param  string     $loginId      The login ID of the user.
-     * @param  string     $method       The delivery method for the OTP.
-     * @param  array|null $loginOptions Optional login options.
+     * @param string $loginId The login ID of the user.
+     * @param int $method The delivery method for the OTP.
+     * @param LoginOptions|null $loginOptions Optional login options.
      * @return array The generated OTP details.
+     * @throws AuthException
      */
     public function generateOtpForTestUser(string $loginId, int $method, ?LoginOptions $loginOptions = null): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_GENERATE_OTP_FOR_TEST_PATH,
                 [
                     'loginId' => $loginId,
@@ -1113,7 +1111,6 @@ class User
                 ],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -1124,16 +1121,17 @@ class User
     /**
      * Generate a magic link for a test user.
      *
-     * @param  string     $loginId      The login ID of the user.
-     * @param  string     $method       The delivery method for the magic link.
-     * @param  string     $uri          The URI for the magic link.
-     * @param  array|null $loginOptions Optional login options.
+     * @param string $loginId The login ID of the user.
+     * @param int $method The delivery method for the magic link.
+     * @param string $uri The URI for the magic link.
+     * @param LoginOptions|null $loginOptions Optional login options.
      * @return array The generated magic link details.
+     * @throws AuthException
      */
     public function generateMagicLinkForTestUser(string $loginId, int $method, string $uri, ?LoginOptions $loginOptions = null): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_GENERATE_MAGIC_LINK_FOR_TEST_PATH,
                 [
                     'loginId' => $loginId,
@@ -1143,7 +1141,6 @@ class User
                 ],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -1164,7 +1161,7 @@ class User
     public function generateEnchantedLinkForTestUser(string $loginId, string $uri, ?LoginOptions $loginOptions = null): array
     {
         try {
-            $response = $this->api->doPost(
+            return $this->api->doPost(
                 MgmtV1::$USER_GENERATE_ENCHANTED_LINK_FOR_TEST_PATH,
                 [
                     'loginId' => $loginId,
@@ -1173,7 +1170,6 @@ class User
                 ],
                 true
             );
-            return $response;
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -1198,7 +1194,7 @@ class User
                 ['loginId' => $loginId, 'customClaims' => $customClaims],
                 true
             );
-    
+
             return $response['token'];
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
@@ -1221,7 +1217,7 @@ class User
     //             $userIds,
     //             true
     //         );
-            
+
     //         return $response;
     //     } catch (RequestException $e) {
     //         $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
@@ -1253,35 +1249,57 @@ class User
         ?array $ssoAppIds,
         ?UserPassword $password
     ): array {
-        $res = [
-            'loginId' => $loginId,
-            'email' => $email,
-            'phone' => $phone,
-            'displayName' => $displayName,
-            'givenName' => $givenName,
-            'middleName' => $middleName,
-            'familyName' => $familyName,
-            'roleNames' => $roleNames,
-            'userTenants' => $userTenants,
-            'invited' => $invited,
-            'test' => $test,
-            'picture' => $picture,
+//        $res = [
+//            'loginId' => $loginId,
+//            'email' => $email,
+//            'phone' => $phone,
+//            'displayName' => $displayName,
+//            'givenName' => $givenName,
+//            'middleName' => $middleName,
+//            'familyName' => $familyName,
+//            'roleNames' => $roleNames,
+//            'userTenants' => $userTenants,
+//            'invited' => $invited,
+//            'test' => $test,
+//            'picture' => $picture,
+//            'customAttributes' => $customAttributes ?? (object)[],
+//            'verifiedEmail' => $verifiedEmail,
+//            'verifiedPhone' => $verifiedPhone,
+//            'inviteUrl' => $inviteUrl,
+//            'sendMail' => $sendMail,
+//            'sendSms' => $sendSms,
+//            'additionalLoginIds' => $additionalLoginIds,
+//            'ssoAppIds' => $ssoAppIds,
+//        ];
+        $res = array_filter([
+            'loginId' => $loginId ?? null,
+            'email' => $email ?? null,
+            'phone' => $phone ?? null,
+            'displayName' => $displayName ?? null,
+            'givenName' => $givenName ?? null,
+            'middleName' => $middleName ?? null,
+            'familyName' => $familyName ?? null,
+            'roleNames' => $roleNames ?? null,
+            'userTenants' => $userTenants ?? null,
+            'invited' => $invited ?? null,
+            'test' => $test ?? null,
+            'picture' => $picture ?? null,
             'customAttributes' => $customAttributes ?? (object)[],
-            'verifiedEmail' => $verifiedEmail,
-            'verifiedPhone' => $verifiedPhone,
-            'inviteUrl' => $inviteUrl,
-            'sendMail' => $sendMail,
-            'sendSms' => $sendSms,
-            'additionalLoginIds' => $additionalLoginIds,
-            'ssoAppIds' => $ssoAppIds,
-        ];
+            'verifiedEmail' => $verifiedEmail ?? null,
+            'verifiedPhone' => $verifiedPhone ?? null,
+            'inviteUrl' => $inviteUrl ?? null,
+            'sendMail' => $sendMail ?? null,
+            'sendSms' => $sendSms ?? null,
+            'additionalLoginIds' => $additionalLoginIds ?? null,
+            'ssoAppIds' => $ssoAppIds ?? null,
+        ], static function ($value) {
+            return !empty($value);
+        });
         if ($password !== null) {
             if (isset($password->cleartext)) {
                 $res['password'] = $password->cleartext;
-            } else {
-                if (isset($password->hashedPassword)) {
-                    $res['hashedPassword'] = $password->hashedPassword;
-                }
+            } else if (isset($password->hashed)) {
+                $res['hashedPassword'] = $password->hashed;
             }
         }
 
@@ -1380,10 +1398,8 @@ class User
         if ($password !== null) {
             if (isset($password->cleartext)) {
                 $res['password'] = $password->cleartext;
-            } else {
-                if (isset($password->hashedPassword)) {
-                    $res['hashedPassword'] = $password->hashedPassword;
-                }
+            } else if (isset($password->hashed)) {
+                $res['hashedPassword'] = $password->hashed;
             }
         }
 
