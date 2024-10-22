@@ -8,12 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Descope\SDK\Exception\AuthException;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\MessageFormatter;
-use GuzzleHttp\Middleware;
 use JsonException;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 
 class API
 {
@@ -37,22 +32,7 @@ class API
      */
     public function __construct(string $projectId, ?string $managementKey)
     {
-        if (!empty($_ENV['DESCOPE_LOG_PATH'])) {
-            $log = new Logger('descope_guzzle_log');
-            $log->pushHandler(new StreamHandler($_ENV['DESCOPE_LOG_PATH'], Logger::DEBUG));
-
-            $stack = HandlerStack::create();
-            $stack->push(
-                Middleware::log(
-                    $log,  // Logger personalizzato
-                    new MessageFormatter(MessageFormatter::DEBUG)
-                )
-            );
-            $this->httpClient = new Client(['handler' => $stack]);
-        } else {
-            $this->httpClient = new Client();
-        }
-
+        $this->httpClient = new Client();
         $this->projectId = $projectId;
         $this->managementKey = $managementKey ?? '';
     }
