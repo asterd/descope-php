@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace Descope\SDK;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Descope\SDK\Exception\AuthException;
-use Descope\SDK\EndpointsV1;
-use Descope\SDK\Token\Verifier;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\MessageFormatter;
+use GuzzleHttp\Middleware;
+use JsonException;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 class API
 {
@@ -32,7 +37,22 @@ class API
      */
     public function __construct(string $projectId, ?string $managementKey)
     {
-        $this->httpClient = new Client();
+        if (!empty($_ENV['DESCOPE_LOG_PATH'])) {
+            $log = new Logger('descope_guzzle_log');
+            $log->pushHandler(new StreamHandler($_ENV['DESCOPE_LOG_PATH'], Logger::DEBUG));
+
+            $stack = HandlerStack::create();
+            $stack->push(
+                Middleware::log(
+                    $log,  // Logger personalizzato
+                    new MessageFormatter(MessageFormatter::DEBUG)
+                )
+            );
+            $this->httpClient = new Client(['handler' => $stack]);
+        } else {
+            $this->httpClient = new Client();
+        }
+
         $this->projectId = $projectId;
         $this->managementKey = $managementKey ?? '';
     }
@@ -69,7 +89,7 @@ class API
      * @param  array  $body             Request body.
      * @param  bool   $useManagementKey Whether to use the management key for authentication.
      * @return array JWT response array.
-     * @throws AuthException If the request fails.
+     * @throws AuthException|GuzzleException|JsonException If the request fails.
      */
     public function doPost(string $uri, array $body, ?bool $useManagementKey = false, ?string $refreshToken = null): array
     {
@@ -97,8 +117,12 @@ class API
             if (!is_object($response) || !method_exists($response, 'getBody') || !method_exists($response, 'getHeader')) {
                 throw new AuthException(500, 'internal error', 'Invalid response from API');
             }
-            $resp = json_decode($response->getBody()->getContents(), true);
-            return $resp;
+            // read body
+            $body = $response->getBody();
+            $body->rewind();
+            $contents = $body->getContents() ?? [];
+
+            return json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -117,12 +141,10 @@ class API
      * @param  string $uri              URI endpoint.
      * @param  bool   $useManagementKey Whether to use the management key for authentication.
      * @return array JWT response array.
-     * @throws AuthException If the request fails.
+     * @throws AuthException|GuzzleException|JsonException If the request fails.
      */
     public function doGet(string $uri, bool $useManagementKey, ?string $refreshToken = null): array
     {
-        $authToken = "";
-
         if ($refreshToken) {
             $authToken = $this->getAuthToken(false, $refreshToken);
         } else {
@@ -133,7 +155,7 @@ class API
             $response = $this->httpClient->get(
                 $uri,
                 [
-                'headers' => $this->getHeaders($authToken),
+                    'headers' => $this->getHeaders($authToken),
                 ]
             );
 
@@ -141,9 +163,12 @@ class API
             if (!is_object($response) || !method_exists($response, 'getBody') || !method_exists($response, 'getHeader')) {
                 throw new AuthException(500, 'internal error', 'Invalid response from API');
             }
-            $resp = json_decode($response->getBody()->getContents(), true);
+            // read body
+            $body = $response->getBody();
+            $body->rewind();
+            $contents = $body->getContents() ?? [];
 
-            return $resp;
+            return json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
         } catch (RequestException $e) {
             $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
             $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
@@ -158,9 +183,9 @@ class API
     /**
      * Generates a JWT response array with the given parameters.
      *
-     * @param  array       $resp         Response data.
-     * @param  string|null $refreshToken Refresh token.
-     * @param  string|null $audience     Audience.
+     * @param array $responseBody
+     * @param string|null $refreshToken Refresh token.
+     * @param string|null $audience Audience.
      * @return array JWT response array.
      */
     public function generateJwtResponse(array $responseBody, ?string $refreshToken = null, ?string $audience = null): array
