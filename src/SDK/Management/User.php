@@ -1249,28 +1249,6 @@ class User
         ?array $ssoAppIds,
         ?UserPassword $password
     ): array {
-//        $res = [
-//            'loginId' => $loginId,
-//            'email' => $email,
-//            'phone' => $phone,
-//            'displayName' => $displayName,
-//            'givenName' => $givenName,
-//            'middleName' => $middleName,
-//            'familyName' => $familyName,
-//            'roleNames' => $roleNames,
-//            'userTenants' => $userTenants,
-//            'invited' => $invited,
-//            'test' => $test,
-//            'picture' => $picture,
-//            'customAttributes' => $customAttributes ?? (object)[],
-//            'verifiedEmail' => $verifiedEmail,
-//            'verifiedPhone' => $verifiedPhone,
-//            'inviteUrl' => $inviteUrl,
-//            'sendMail' => $sendMail,
-//            'sendSms' => $sendSms,
-//            'additionalLoginIds' => $additionalLoginIds,
-//            'ssoAppIds' => $ssoAppIds,
-//        ];
         $res = array_filter([
             'loginId' => $loginId ?? null,
             'email' => $email ?? null,
@@ -1281,7 +1259,7 @@ class User
             'familyName' => $familyName ?? null,
             'roleNames' => $roleNames ?? null,
             'userTenants' => $userTenants ?? null,
-            'invited' => $invited ?? null,
+            'invite' => $invited ?? null,
             'test' => $test ?? null,
             'picture' => $picture ?? null,
             'customAttributes' => $customAttributes ?? (object)[],
@@ -1289,7 +1267,7 @@ class User
             'verifiedPhone' => $verifiedPhone ?? null,
             'inviteUrl' => $inviteUrl ?? null,
             'sendMail' => $sendMail ?? null,
-            'sendSms' => $sendSms ?? null,
+            'sendSMS' => $sendSms ?? null,
             'additionalLoginIds' => $additionalLoginIds ?? null,
             'ssoAppIds' => $ssoAppIds ?? null,
         ], static function ($value) {

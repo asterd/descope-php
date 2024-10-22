@@ -8,7 +8,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Descope\SDK\Exception\AuthException;
-use JsonException;
 
 class API
 {
@@ -69,7 +68,7 @@ class API
      * @param  array  $body             Request body.
      * @param  bool   $useManagementKey Whether to use the management key for authentication.
      * @return array JWT response array.
-     * @throws AuthException|GuzzleException|JsonException If the request fails.
+     * @throws AuthException|GuzzleException|\JsonException If the request fails.
      */
     public function doPost(string $uri, array $body, ?bool $useManagementKey = false, ?string $refreshToken = null): array
     {
@@ -88,8 +87,8 @@ class API
             $response = $this->httpClient->post(
                 $uri,
                 [
-                'headers' => $this->getHeaders($authToken),
-                'body' => $jsonBody,
+                    'headers' => $this->getHeaders($authToken),
+                    'body' => $jsonBody,
                 ]
             );
 
